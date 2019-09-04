@@ -19,7 +19,9 @@ This package follows the community run driver standard of using strings to repre
 6. makes migrating significantly easier
 
 ##Install
+
 `go get -u github.com/qhenkart/objectid-go`
+
 `dep ensure --add github.com/qhenkart/objectid-go`
 
 ##Usage
