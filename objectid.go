@@ -1,3 +1,4 @@
+// Package oid provides an easy to use/integrate abstraction layer between your code and the primitive package of the official mongo driver
 package oid
 
 import (
