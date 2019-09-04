@@ -1,7 +1,6 @@
 // Package oid provides an easy to use/integrate abstraction layer between your code and the primitive package of the official mongo driver
 //
 // helps to bridge the gap between the new mongo-go-driver and previous community run drivers such as the mgo package
-//
 // For people not migrating, this also helps cover some of the pitfalls and frustrations of mongo-go-driver's primitive package which is extremely brittle, leaks too much of the driver to the clients of the API, and can even cause unexpected panics when unmarshalling
 //
 // This package follows the community run driver standard of using strings to represent objectIDs instead of [12]bytes, allowing for a much smoother development experience.
