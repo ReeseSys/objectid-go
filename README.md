@@ -1,5 +1,6 @@
 # ObjectID-Go
 
+[![CircleCI](https://circleci.com/gh/qhenkart/objectid-go.svg?style=svg)](https://circleci.com/gh/qhenkart/objectid-go)
 ObjectID-Go helps to bridge the gap between the new [mongo-go-driver](https://github.com/mongodb/mongo-go-driver) and previous community run drivers such as [mgo](https://github.com/globalsign/mgo).
 
 For people not migrating, this also helps cover some of the pitfalls and frustrations of mongo-go-driver's primitive package which is extremely error prone, leaks too much of the driver to the clients of an API, and can even cause unexpected panics by sending any invalid payload of 12 bytes.
