@@ -22,6 +22,8 @@ This package follows the community run driver standard of using strings to repre
 
 `go get -u github.com/qhenkart/objectid-go`
 
+or
+
 `dep ensure --add github.com/qhenkart/objectid-go`
 
 ##Usage
