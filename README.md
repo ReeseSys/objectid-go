@@ -17,3 +17,19 @@ This package follows the community run driver standard of using strings to repre
 4. fixes vet errors that was rampant in the community drivers
 5. combines the best features of community drivers and the primitive package
 6. makes migrating significantly easier
+
+##Install
+`go get -u github.com/qhenkart/objectid-go`
+`dep ensure --add github.com/qhenkart/objectid-go`
+
+##Usage
+
+```
+type User struct {
+  ID oid.ObjectID `bson:"_id" json:"id"`
+}
+```
+
+and use the struct with json un/marshallers and the mongo-go-driver methods without a second thought
+
+Check the godocs for additional functionality and helpers
