@@ -9,7 +9,7 @@ For people not migrating, this also helps cover some of the pitfalls and frustra
 
 This package follows the community run driver standard of using strings to represent objectIDs instead of [12]bytes, allowing for a much smoother development experience.
 
-##Features
+## Features
 
 1. This package automatically converts all oid.ObjectID types into primitive.ObjectIDs when marshalling or unmarshalling into bson
 2. no panics on JSON unmarshalling
@@ -18,7 +18,7 @@ This package follows the community run driver standard of using strings to repre
 5. combines the best features of community drivers and the primitive package
 6. makes migrating significantly easier
 
-##Install
+## Install
 
 `go get -u github.com/qhenkart/objectid-go`
 
@@ -26,7 +26,7 @@ or
 
 `dep ensure --add github.com/qhenkart/objectid-go`
 
-##Usage
+## Usage
 
 ```
 type User struct {
