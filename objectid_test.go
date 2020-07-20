@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go.mongodb.org/mongo-driver/bson/bsoncodec"
 	"math/rand"
 	"os"
 	"reflect"
@@ -25,6 +26,7 @@ type test struct {
 	P  *ObjectID          `bson:"p,omitempty"`
 	S  string             `bson:"s"`
 	B  []byte             `bson:"b"`
+	N  int32              `bson:"n,omitempty"`
 }
 
 func TestObjectID(t *testing.T) {
@@ -95,15 +97,85 @@ func TestObjectID(t *testing.T) {
 				S ObjectID `bson:"s"`
 			}
 
-			expected := "type string cannot be converted to objectID"
+			var out resp
 
 			res := e.FindOne(ctx, bson.M{"s": testID})
-			if err := res.Err(); err != nil && err.Error() != expected {
-				t.Fatalf("expected %s, got %v", expected, err)
+			if err := res.Err(); err != nil {
+				t.Fatalf("expected nil, got %s", err)
+			}
+			if err := res.Decode(&out); err != nil {
+				t.Fatalf("expected nil, got %v", err)
+			}
+			expected, _ := primitive.ObjectIDFromHex(testID)
+			if expected.String() != out.S.String() {
+				t.Fatalf("\nexpected: %+v \n got %+v", expected, out.S)
 			}
 		})
 	})
 
+	t.Run("id_string_invalid", func(t *testing.T) {
+		tearUp(t, func(ctx context.Context, e *mongo.Collection) {
+			invalidString := "AsDvLlsldffpwoerpsdlfksld!!!fkds"
+			b := test{
+				ID: primitive.NewObjectID(),
+				S:  invalidString,
+			}
+
+			if _, err := e.InsertOne(ctx, b); err != nil {
+				t.Fatalf("expected nil, got %s", err)
+			}
+
+			type resp struct {
+				S ObjectID `bson:"s"`
+			}
+
+			var out resp
+
+			res := e.FindOne(ctx, bson.M{"s": invalidString})
+			if err := res.Err(); err != nil {
+				t.Fatalf("expected nil, got %s", err)
+			}
+			expected := fmt.Sprintf("error occurred while trying to convert, reason: invalid input to ObjectIDHex: \"%s\"", invalidString)
+			err := res.Decode(&out).(*bsoncodec.DecodeError)
+			if nil == err {
+				t.Fatalf("expected error, got nil")
+			}
+			if err.Unwrap().Error() != expected {
+				t.Fatalf("expected: %s. got %s", expected, err.Unwrap().Error())
+			}
+		})
+	})
+
+	t.Run("id_num", func(t *testing.T) {
+		tearUp(t, func(ctx context.Context, e *mongo.Collection) {
+			b := test{
+				ID: primitive.NewObjectID(),
+				N:  123,
+			}
+
+			if _, err := e.InsertOne(ctx, b); err != nil {
+				t.Fatalf("expected nil, got %s", err)
+			}
+
+			type resp struct {
+				N ObjectID `bson:"n"`
+			}
+			var out resp
+			expected := "type 32-bit integer cannot be converted to objectID"
+			res := e.FindOne(ctx, bson.M{"n": 123})
+			if err := res.Err(); err != nil {
+				t.Fatalf("expected nil, got %s", err)
+			}
+			err := res.Decode(&out).(*bsoncodec.DecodeError)
+			if err == nil {
+				t.Fatalf("expected error, got nil")
+			}
+
+			if err.Unwrap().Error() != expected {
+				t.Fatalf("expected %s, got %s", expected, err.Unwrap().Error())
+			}
+		})
+	})
 }
 
 func TestObjectIDHex(t *testing.T) {

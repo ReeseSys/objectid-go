@@ -93,7 +93,7 @@ func (id ObjectID) MarshalBSONValue() (bsontype.Type, []byte, error) {
 
 // UnmarshalBSONValue satisfies the decoding interface for the mongo driver
 func (id *ObjectID) UnmarshalBSONValue(t bsontype.Type, b []byte) error {
-	if t != bsontype.ObjectID {
+	if t != bsontype.ObjectID && t != bsontype.String {
 		return fmt.Errorf("type %s cannot be converted to %s", t, bsontype.ObjectID)
 	}
 
@@ -102,7 +102,17 @@ func (id *ObjectID) UnmarshalBSONValue(t bsontype.Type, b []byte) error {
 		return fmt.Errorf("invalid objectID from source: %v", err)
 	}
 
-	oid, _ := ObjectIDHex(val.ObjectID().Hex())
+	var oid ObjectID
+	var err error
+	if t == bsontype.ObjectID {
+		oid, err = ObjectIDHex(val.ObjectID().Hex())
+	} else {
+		oid, err = ObjectIDHex(val.String())
+	}
+
+	if nil != err {
+		return fmt.Errorf("error occurred while trying to convert, reason: %s", err)
+	}
 
 	*id = oid
 
