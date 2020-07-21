@@ -98,7 +98,7 @@ func (id *ObjectID) UnmarshalBSONValue(t bsontype.Type, b []byte) error {
 	}
 
 	val := bsonx.Undefined()
-	if err := val.UnmarshalBSONValue(bsontype.ObjectID, b); err != nil {
+	if err := val.UnmarshalBSONValue(t, b); err != nil {
 		return fmt.Errorf("invalid objectID from source: %v", err)
 	}
 
