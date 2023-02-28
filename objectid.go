@@ -22,10 +22,12 @@ package oid
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson/bsontype"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -64,7 +66,7 @@ func NewObjectID() ObjectID {
 }
 
 // String returns a hex string representation of the id.
-// Example: ObjectIdHex("4d88e15b60f486e428412dc9").
+// Example: ObjectIDHex("4d88e15b60f486e428412dc9").
 func (id ObjectID) String() string {
 	return fmt.Sprintf(`ObjectID("%x")`, string(id))
 }
@@ -78,6 +80,49 @@ func (id ObjectID) Hex() string {
 func (id ObjectID) Valid() bool {
 	_, err := primitive.ObjectIDFromHex(id.Hex())
 	return err == nil
+}
+
+// byteSlice returns byte slice of id from start to end.
+// Calling this function with an invalid id will cause a runtime panic.
+func (id ObjectID) byteSlice(start, end int) []byte {
+	if len(id) != 12 {
+		panic(fmt.Sprintf("invalid ObjectID: %q", string(id)))
+	}
+	return []byte(string(id)[start:end])
+}
+
+// Time returns the timestamp part of the id.
+// It's a runtime error to call this method with an invalid id.
+func (id ObjectID) Time() time.Time {
+	// First 4 bytes of ObjectID is 32-bit big-endian seconds from epoch.
+	secs := int64(binary.BigEndian.Uint32(id.byteSlice(0, 4)))
+	return time.Unix(secs, 0)
+}
+
+// Note: The ObjectID spec was changed in 2018: Machine ID and
+// ProcessID were replaced by a single 5-byte random value. According
+// to the spec, drivers MUST NOT have an accessor method on an ObjectID
+// to obtain the random value.
+// https://github.com/mongodb/specifications/blob/master/source/objectid.rst
+
+// Deprecated: Machine returns the 3-byte machine id part of the id.
+// It's a runtime error to call this method with an invalid id.
+func (id ObjectID) Machine() []byte {
+	return id.byteSlice(4, 7)
+}
+
+// Deprecated: Pid returns the process id part of the id.
+// It's a runtime error to call this method with an invalid id.
+func (id ObjectID) Pid() uint16 {
+	return binary.BigEndian.Uint16(id.byteSlice(7, 9))
+}
+
+// Counter returns the incrementing value part of the id.
+// It's a runtime error to call this method with an invalid id.
+func (id ObjectID) Counter() int32 {
+	b := id.byteSlice(9, 12)
+	// Counter is stored as big-endian 3-byte value
+	return int32(uint32(b[0])<<16 | uint32(b[1])<<8 | uint32(b[2]))
 }
 
 // MarshalBSONValue satisfies the decoding interface for the mongo driver

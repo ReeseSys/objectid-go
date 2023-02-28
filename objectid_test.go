@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"go.mongodb.org/mongo-driver/bson/bsoncodec"
 	"math/rand"
 	"os"
 	"reflect"
 	"testing"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/bsoncodec"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -19,6 +20,10 @@ import (
 )
 
 var testID = "5d6f6ff1646327ce31968d93"
+var testIDSecs int64 = 1567584241 // Wednesday, September 4, 2019 8:04:01 AM
+var testIDMachine uint32 = 6578983
+var testIDPid uint16 = 52785
+var testIDCounter int32 = 9866643
 
 type test struct {
 	ID primitive.ObjectID `bson:"_id"`
@@ -236,6 +241,55 @@ func TestHex(t *testing.T) {
 
 	if testID != id.Hex() {
 		t.Fatalf("expected %s, got %s", testID, id.Hex())
+	}
+}
+
+func TestTime(t *testing.T) {
+	id, err := ObjectIDHex(testID)
+	if err != nil {
+		t.Fatalf("could not make objectId %v", err)
+	}
+
+	tValid := time.Unix(testIDSecs, 0)
+	if tValid != id.Time() {
+		t.Fatalf("could not retrieve proper time stamp from objectId")
+	}
+}
+
+func TestMachine(t *testing.T) {
+	id, err := ObjectIDHex(testID)
+	if err != nil {
+		t.Fatalf("could not make objectId %v", err)
+	}
+
+	b := id.Machine()
+
+	// Machine value is 3 bytes, convert to int to compare.
+	mVal := uint32(b[2]) | uint32(b[1])<<8 | uint32(b[0])<<16
+	if mVal != testIDMachine {
+		t.Fatalf("could not retrieve proper machine ID from objectId")
+	}
+}
+
+func TestPid(t *testing.T) {
+	id, err := ObjectIDHex(testID)
+	if err != nil {
+		t.Fatalf("could not make objectId %v", err)
+	}
+
+	if id.Pid() != testIDPid {
+		t.Fatalf("could not retrieve proper PID from objectId")
+	}
+}
+
+func TestCounter(t *testing.T) {
+	id, err := ObjectIDHex(testID)
+	if err != nil {
+		t.Fatalf("could not make objectId %v", err)
+	}
+
+	if id.Counter() != testIDCounter {
+		t.Fatalf("could not retrieve proper counter from objectId")
 	}
 }
 
